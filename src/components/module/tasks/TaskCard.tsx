@@ -3,18 +3,34 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
 import { ITask } from "@/types";
 import { cn } from "@/lib/utils";
-import { useAppDispatch } from "@/redux/hook";
-import {
-  deleteTask,
-  toggleCompleteState,
-} from "@/redux/features/task/taskSlice";
+// import { useAppDispatch } from "@/redux/hook";
+// import {
+//   toggleCompleteState,
+// } from "@/redux/features/task/taskSlice";
+import { useDeleteTaskMutation, useUpdateTaskMutation } from "@/redux/api/baseApi";
+import { UpdateTaskModal } from "./UpdateTaskModal";
 
-interface IProps {
+export interface IProps {
   task: ITask;
 }
 
 const TaskCard = ({ task }: IProps) => {
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
+  const [deleteTask, {isLoading}] = useDeleteTaskMutation();
+  const [updateTask] = useUpdateTaskMutation();
+
+  const handleCheckboxChange = async () => {
+    try {
+      await updateTask({ id: task._id, isCompleted: !task.isCompleted }).unwrap();
+      console.log("Task status updated successfully");
+    } catch (error) {
+      console.error("Failed to update task status:", error);
+    }
+  };
+
+  if (isLoading){
+    return <div>Loading...</div>
+  }
 
   return (
     <div className="border px-5 py-3 rounded-md">
@@ -32,8 +48,9 @@ const TaskCard = ({ task }: IProps) => {
           </h1>
         </div>
         <div className="flex gap-3 items-center">
+          <UpdateTaskModal task={task}/>
           <Button
-            onClick={() => dispatch(deleteTask(task.id))}
+            onClick={() => deleteTask(task._id)}
             variant="link"
             className="p-0 text-red-500"
           >
@@ -41,7 +58,7 @@ const TaskCard = ({ task }: IProps) => {
           </Button>
           <Checkbox
             checked={task.isCompleted}
-            onClick={() => dispatch(toggleCompleteState(task.id))}
+            onClick={handleCheckboxChange}
           />
         </div>
       </div>

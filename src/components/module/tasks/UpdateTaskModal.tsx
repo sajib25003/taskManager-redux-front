@@ -39,36 +39,40 @@ import { Input } from "@/components/ui/input";
 // import { addTask } from "@/redux/features/task/taskSlice";
 // import { ITask } from "@/types";
 import { useState } from "react";
-import { useCreateTaskMutation } from "@/redux/api/baseApi";
+import { useUpdateTaskMutation } from "@/redux/api/baseApi";
+import { FaEdit } from "react-icons/fa";
+import { IProps } from "./TaskCard";
 
-export function AddTaskModal() {
-  const [open, setOpen]= useState(false);
+export function UpdateTaskModal({ task }: IProps) {
+  const [open, setOpen] = useState(false);
   const form = useForm();
   // const dispatch = useAppDispatch();
 
-  const [createTask, {data, isLoading}] = useCreateTaskMutation();
+  const [updateTask, { data, isLoading }] = useUpdateTaskMutation();
 
-  if (isLoading){
-    return <div>Loading...</div>
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
 
-console.log("Data", data);
+  console.log("data", data);
+  console.log("loadedData", task);
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
-
-    const taskData = {
+    const updatedData = {
       ...data,
       isCompleted: false,
+    };
+
+    try {
+      // Combine `id` and `updatedData` into a single object
+      const res = await updateTask({ id: task._id, ...updatedData }).unwrap();
+      console.log("Inside submit function", res);
+
+      setOpen(false);
+      form.reset();
+    } catch (error) {
+      console.error("Failed to update task:", error);
     }
-
-    const res = await createTask(taskData).unwrap();
-    console.log("Inside submit function",res);
-
-    setOpen(false);
-    form.reset();
-    // dispatch(addTask(taskData as ITask))
-
-    
   };
   // const onSubmit = (data) => {
   //   dispatch(addTask(data))
@@ -76,14 +80,16 @@ console.log("Data", data);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-black text-white border-white">Add Task</Button>
+        <Button variant="link" className="p-0 text-green-500 text-3xl">
+          <FaEdit />
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogDescription className="sr-only">
-          Fill up the form to add task!
+          Update the task!
         </DialogDescription>
         <DialogHeader>
-          <DialogTitle>Add A Task</DialogTitle>
+          <DialogTitle>Update Task</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-end gap-3 space-x-2">
           <div className="w-full flex-1 gap-2">
@@ -92,11 +98,12 @@ console.log("Data", data);
                 <FormField
                   control={form.control}
                   name="title"
+                  defaultValue={task.title} 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Title</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ""}/>
+                        <Input {...field} value={field.value || ""} />
                       </FormControl>
                     </FormItem>
                   )}
@@ -104,6 +111,7 @@ console.log("Data", data);
                 <FormField
                   control={form.control}
                   name="description"
+                  defaultValue={task.description} 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Description</FormLabel>
@@ -116,11 +124,12 @@ console.log("Data", data);
                 <FormField
                   control={form.control}
                   name="dueDate"
+                  defaultValue={task.dueDate} 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Due Date</FormLabel>
                       <FormControl>
-                      <Popover>
+                        <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
@@ -144,10 +153,10 @@ console.log("Data", data);
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                            //   disabled={(date) =>
-                            //     date > new Date() ||
-                            //     date < new Date("1900-01-01")
-                            //   }
+                              //   disabled={(date) =>
+                              //     date > new Date() ||
+                              //     date < new Date("1900-01-01")
+                              //   }
                               initialFocus
                             />
                           </PopoverContent>
@@ -159,6 +168,7 @@ console.log("Data", data);
                 <FormField
                   control={form.control}
                   name="priority"
+                  defaultValue={task.priority} 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Select Priority</FormLabel>
@@ -184,7 +194,7 @@ console.log("Data", data);
                 />
                 <DialogFooter className="sm:justify-start">
                   <Button type="submit" size="sm" className="px-3 w-14 mt-5">
-                    <span className="">Add</span>
+                    <span className="">Update</span>
                   </Button>
                 </DialogFooter>
               </form>
