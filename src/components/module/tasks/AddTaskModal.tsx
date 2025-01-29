@@ -1,3 +1,4 @@
+import {jwtDecode} from "jwt-decode";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import {
@@ -41,28 +42,44 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useCreateTaskMutation } from "@/redux/api/baseApi";
 
+// interface IDecodedToken {
+//   userId: string;
+// }
+
 export function AddTaskModal() {
   const [open, setOpen]= useState(false);
   const form = useForm();
   // const dispatch = useAppDispatch();
 
-  const [createTask, {data, isLoading}] = useCreateTaskMutation();
+  const [createTask, { isLoading}] = useCreateTaskMutation();
 
   if (isLoading){
     return <div>Loading...</div>
   }
 
-console.log("Data", data);
+// console.log("Data", data);
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
+
+    const token = localStorage.getItem("token");
+    let userID = "";
+
+    if (token) {
+      const decoded = jwtDecode<{ _id: string }>(token);
+  
+      // console.log(decoded, "decoded");
+      userID = decoded._id;
+    }
 
     const taskData = {
       ...data,
       isCompleted: false,
+      userId: userID,
     }
 
-    const res = await createTask(taskData).unwrap();
-    console.log("Inside submit function",res);
+    console.log(taskData);
+
+    await createTask(taskData).unwrap();
 
     setOpen(false);
     form.reset();

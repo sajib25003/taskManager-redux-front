@@ -5,6 +5,7 @@ export interface ITask {
     dueDate: string,
     isCompleted: boolean,
     priority: 'High' | 'Medium' | 'Low',
+    userId: string,
 }
 
 export interface IUser {

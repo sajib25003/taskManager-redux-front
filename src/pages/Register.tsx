@@ -3,6 +3,9 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
+import { Bounce, ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 interface FormData {
   name: string;
@@ -13,6 +16,20 @@ interface FormData {
 }
 
 const Register = () => {
+
+  const showToast = () => {
+    toast("User Created Successfully", {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      transition: Bounce,
+    });
+  };
   const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(true);
@@ -29,7 +46,7 @@ const Register = () => {
   const onSubmit = (data: FormData) => {
     const { name, email, password, photoURL } = data;
 
-    console.log(name, email, password, photoURL);
+    // console.log(name, email, password, photoURL);
 
     const userInfo = {
       name: name,
@@ -42,9 +59,26 @@ const Register = () => {
       .post("/api/users", userInfo)
       .then((res) => {
         console.log("User created:", res.data);
-        alert("User Created Successfully");
+        showToast();
         reset();
-        navigate("/");
+        axiosPublic
+        .post("/api/login", { email, password })  // Log the user in immediately after registration
+        .then((loginRes) => {
+          const token = loginRes.data.token;
+          localStorage.setItem("token", token); // Save the token to localStorage
+
+          // Redirect to the tasks page
+          setTimeout(() => {
+            navigate("/");
+          }, 2000);
+        })
+        .catch((error) => {
+          console.error("Login error after registration:", error);
+          alert("Login failed. Please try again.");
+        });
+        // setTimeout(() => {
+        //   navigate("/tasks");
+        // }, 2000);
       })
       .catch((error) => {
         if (error.response) {
@@ -64,20 +98,20 @@ const Register = () => {
 
   return (
     <div className="mx-auto  bg-green-50 px-5 min-h-screen">
-      <h3 className="text-center font-bold text-3xl py-5 pt-10">
+      <h3 className="text-center font-bold text-xl md:text-2xl lg:text-3xl py-5 pt-10">
         Create Account
       </h3>
       <div className=" flex justify-center  ">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="card-body w-1/2 space-y-3 border-2 border-grey-300 shadow-3xl h- rounded-lg p-5 bg-slate-100"
+          className="card-body w-4/5 lg:w-1/2 space-y-3 border-2 border-grey-300 shadow-3xl h- rounded-lg p-5 bg-slate-100"
         >
           {/* Name Field */}
           <div className="form-control">
             <input
               type="text"
               placeholder="Name"
-              className="input input-bordered w-full p-3 rounded-md"
+              className="input input-bordered w-full p-3 rounded-md text-black"
               {...register("name", { required: true })}
             />
             {errors.name && (
@@ -90,7 +124,7 @@ const Register = () => {
             <input
               type="text"
               placeholder="Photo URL"
-              className="input input-bordered w-full p-3 rounded-md"
+              className="input input-bordered w-full p-3 rounded-md text-black"
               {...register("photoURL")}
             />
             {errors.photoURL && (
@@ -103,7 +137,7 @@ const Register = () => {
             <input
               type="email"
               placeholder="Email"
-              className="input input-bordered w-full p-3 rounded-md"
+              className="input input-bordered w-full p-3 rounded-md text-black"
               {...register("email", { required: true })}
             />
             {errors.email && (
@@ -117,7 +151,7 @@ const Register = () => {
               <input
                 type={!showPassword ? "text" : "password"}
                 placeholder="Password"
-                className="input input-bordered w-full p-3 rounded-md"
+                className="input input-bordered w-full p-3 rounded-md text-black"
                 {...register("password", {
                   required: true,
                   minLength: 6,
@@ -196,6 +230,7 @@ const Register = () => {
           </p>
         </form>
       </div>
+      <ToastContainer />
     </div>
   );
 };

@@ -12,6 +12,7 @@ const routes = createBrowserRouter([
     element: <App />,
     children: [
         { index: true, element: <ProtectedRoutes><Tasks /></ProtectedRoutes> },
+        { path: "/tasks", element: <Tasks /> },
         { path: "/login", element: <Login /> },
         { path: "/register", element: <Register /> },
         { path: "/users", element: <Users /> },

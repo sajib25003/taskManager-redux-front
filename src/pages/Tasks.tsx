@@ -6,17 +6,34 @@ import { useGetTasksQuery } from "@/redux/api/baseApi";
 // import { useAppDispatch } from "@/redux/hook";
 import { ITask } from "@/types";
 import { useState } from "react";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
 const Tasks = () => {
   // const tasks = useAppSelector(selectTasks);
   // const dispatch = useAppDispatch();
   // const filters = useAppSelector(selectFilter)
 
+  const navigate = useNavigate();
+
+ 
   const [activeTab, setActiveTab] = useState<"All" | "Completed" | "Pending">(
     "All"
   );
 
-  const { data, isLoading } = useGetTasksQuery(undefined, {
+  const token = localStorage.getItem("token");
+  let userId = "";
+
+  if (token) {
+    const decoded = jwtDecode<{ _id: string }>(token);
+
+    // console.log(decoded, "decoded");
+    userId = decoded._id;
+  } else {
+    navigate("/login")
+  }
+
+  const { data, isLoading } = useGetTasksQuery({ userId }, {
     pollingInterval: 30000,
     refetchOnFocus: true,
     refetchOnMountOrArgChange: true,
@@ -34,15 +51,15 @@ const Tasks = () => {
     return <div>Loading...</div>;
   }
 
-  console.log({ data, isLoading });
+  // console.log({ data, isLoading });
 
   // console.log(tasks);
 
   return (
-    <div className="mx-auto max-w-7xl px-5 mt-20">
-      <div className="flex justify-end items-center">
-        <h1 className="mr-auto text-2xl font-bold">Tasks</h1>
-        <Tabs className="mr-2">
+    <div className="mx-auto max-w-7xl px-5 mt-3">
+      <div className="flex justify-end items-center flex-col md:flex-row">
+        <h1 className="mr-auto text-lg md:text-2xl lg:text-3xl font-bold">Tasks</h1>
+        <Tabs className="mr-2 flex items-center gap-2">
           <TabsList defaultValue="All">
             <TabsTrigger onClick={() => setActiveTab("All")} value="All">
               All
@@ -60,8 +77,8 @@ const Tasks = () => {
               Pending
             </TabsTrigger>
           </TabsList>
-        </Tabs>
         <AddTaskModal />
+        </Tabs>
       </div>
       <div className="space-y-5 mt-5">
         {filteredTasks?.length ? (

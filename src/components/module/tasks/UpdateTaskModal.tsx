@@ -48,14 +48,14 @@ export function UpdateTaskModal({ task }: IProps) {
   const form = useForm();
   // const dispatch = useAppDispatch();
 
-  const [updateTask, { data, isLoading }] = useUpdateTaskMutation();
+  const [updateTask, { isLoading }] = useUpdateTaskMutation();
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  console.log("data", data);
-  console.log("loadedData", task);
+  // console.log("data", data);
+  // console.log("loadedData", task);
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     const updatedData = {
@@ -64,9 +64,7 @@ export function UpdateTaskModal({ task }: IProps) {
     };
 
     try {
-      // Combine `id` and `updatedData` into a single object
-      const res = await updateTask({ id: task._id, ...updatedData }).unwrap();
-      console.log("Inside submit function", res);
+      await updateTask({ id: task._id, ...updatedData }).unwrap();
 
       setOpen(false);
       form.reset();
